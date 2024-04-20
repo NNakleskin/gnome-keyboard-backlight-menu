@@ -5,10 +5,7 @@
   "uuid": "keyboard-backlight-menu@ophir.dev",
   "url": "https://github.com/lovasoa/gnome-keyboard-backlight-menu",
   "shell-version": [
-    "40",
-    "41",
-    "42",
-    "43",
-    "44"
+    "45",
+    "46"
   ]
 }

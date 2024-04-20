@@ -19,13 +19,14 @@
 /* exported init */
 "use strict";
 
-const {Gio, GObject} = imports.gi;
-
-const QuickSettings = imports.ui.quickSettings;
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import * as QuickSettings from 'resource:///org/gnome/shell/ui/quickSettings.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 // This is the live instance of the Quick Settings menu
-const QuickSettingsMenu = imports.ui.main.panel.statusArea.quickSettings;
-
+const QuickSettingsMenu = Main.panel.statusArea.quickSettings;
 
 class KbdBrightnessProxy {
     constructor(callback) {
@@ -68,30 +69,6 @@ class KbdBrightnessProxy {
     }
 }
 
-
-const FeatureIndicator = GObject.registerClass(
-    class FeatureIndicator extends QuickSettings.SystemIndicator {
-        _init() {
-            super._init();
-
-            // Create the slider and associate it with the indicator, being sure to
-            // destroy it along with the indicator
-            this.quickSettingsItems.push(new FeatureSlider());
-
-            this.connect('destroy', () => {
-                this.quickSettingsItems.forEach(item => item.destroy());
-            });
-
-            // Add the indicator to the panel
-            QuickSettingsMenu._indicators.add_child(this);
-
-
-            // Add the slider to the menu, passing `2` as the second
-            // argument to ensure the slider spans both columns of the menu
-            QuickSettingsMenu._addItems(this.quickSettingsItems, 2);
-        }
-    });
-
 const FeatureSlider = GObject.registerClass(
     class FeatureSlider extends QuickSettings.QuickSlider {
         _init() {
@@ -117,21 +94,18 @@ const FeatureSlider = GObject.registerClass(
         }
     });
 
-class Extension {
-    constructor() {
-        this._indicator = null;
-    }
-
+export default class KeyboardBacklightExtension extends Extension {
     enable() {
-        this._indicator = new FeatureIndicator();
+
+        this._indicator = new QuickSettings.SystemIndicator();
+        this._indicator.quickSettingsItems.push(new FeatureSlider());
+        
+        QuickSettingsMenu.addExternalIndicator(this._indicator, 2);
     }
 
     disable() {
+        this._indicator.quickSettingsItems.forEach(item => item.destroy());
         this._indicator.destroy();
         this._indicator = null;
     }
-}
-
-function init() {
-    return new Extension();
 }
